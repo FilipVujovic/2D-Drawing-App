@@ -56,6 +56,7 @@ public class DlgPoint extends JDialog {
 
 	public DlgPoint() {
 		setModal(true);
+		setTitle("Update Point");
 		setBounds(100, 100, 450, 300);
 		JPanel panel = new JPanel();
 		getContentPane().add(panel, BorderLayout.CENTER);

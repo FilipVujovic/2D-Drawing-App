@@ -60,6 +60,7 @@ public class DlgCircle extends JDialog{
 	public DlgCircle() {
 		setResizable(false);
 		setModal(true);
+		setTitle("Add Circle");
 		setBounds(100, 100, 300, 180);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));

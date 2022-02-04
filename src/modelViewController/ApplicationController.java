@@ -32,6 +32,7 @@ import commands.CmdRectangleUpdate;
 import commands.CmdSelect;
 import commands.CmdToBack;
 import commands.CmdToFront;
+import commands.CmdUnselect;
 import delete.CmdCircleDelete;
 import delete.CmdDeleteShape;
 import delete.CmdDonutDelete;
@@ -73,7 +74,9 @@ public class ApplicationController implements PropertyChangeListener{
 	private Color inColor = Color.WHITE;
 	private DefaultListModel<String> actLog;
 	private FileManager fileManager;
-
+	private int selSize = 0;
+	
+	
 	public ApplicationController(ApplicationModel AppModel, ApplicationFrame AppFrame)
 	{
 		this.AppModel = AppModel;
@@ -85,6 +88,7 @@ public class ApplicationController implements PropertyChangeListener{
 		stateChecker(e);
 		if(checkShapes(e) == false) {
 			unselectAll();
+			AppFrame.getAppView().repaint();
 		}
 		AppFrame.getAppView().repaint();
 	}
@@ -106,12 +110,18 @@ public class ApplicationController implements PropertyChangeListener{
 		//			}
 		//		
 		//		}
-		if((int) evt.getNewValue() == 1 && evt.getPropertyName() == "Selected Shapes" || AppModel.getSelectedShapes().size()>0) {
+		if((int) evt.getNewValue() == 1 && evt.getPropertyName() == "Selected Shapes" || AppModel.getSelectedShapes().size() == 1) {
 			AppFrame.getTglBtnModify().setVisible(true);
-			AppFrame.getTglBtnDelete().setVisible(true);
+//			AppFrame.getTglBtnDelete().setVisible(true);
 		} 
 		else {
 			AppFrame.getTglBtnModify().setVisible(false);
+//			AppFrame.getTglBtnDelete().setVisible(false);
+		}
+		
+		if((int) evt.getNewValue() == 1 && evt.getPropertyName() == "Selected Shapes" || AppModel.getSelectedShapes().size() > 0) {
+			AppFrame.getTglBtnDelete().setVisible(true);
+		} else {
 			AppFrame.getTglBtnDelete().setVisible(false);
 		}
 
@@ -141,6 +151,8 @@ public class ApplicationController implements PropertyChangeListener{
 		CmdPointAdd.execute();
 		AppModel.pushToUndoStack(CmdPointAdd);
 		actLog.addElement("Added->" + point.toString());
+		AppFrame.getBtnRedo().setVisible(false);
+		AppModel.getRedoStack().removeAllElements();
 
 	}
 	private void drawLine(MouseEvent e){
@@ -154,6 +166,8 @@ public class ApplicationController implements PropertyChangeListener{
 			AppModel.pushToUndoStack(CmdLineAdd);
 			AppModel.setStartPoint(null);
 			actLog.addElement("Added->" + line.toString());
+			AppFrame.getBtnRedo().setVisible(false);
+			AppModel.getRedoStack().removeAllElements();
 		}
 	}
 
@@ -170,6 +184,8 @@ public class ApplicationController implements PropertyChangeListener{
 					CmdCircleAdd.execute();
 					AppModel.pushToUndoStack(CmdCircleAdd);
 					actLog.addElement("Added->" + circle.toString());
+					AppFrame.getBtnRedo().setVisible(false);
+					AppModel.getRedoStack().removeAllElements();
 				} else {
 					JOptionPane.showMessageDialog(AppFrame,
 							"Illegal input type!",
@@ -196,6 +212,8 @@ public class ApplicationController implements PropertyChangeListener{
 				CmdRectangleAdd.execute();
 				AppModel.pushToUndoStack(CmdRectangleAdd);
 				actLog.addElement("Added->" + rectangle.toString());
+				AppFrame.getBtnRedo().setVisible(false);
+				AppModel.getRedoStack().removeAllElements();
 			} else {
 				JOptionPane.showMessageDialog(AppFrame,
 						"Illegal input type!",
@@ -219,6 +237,8 @@ public class ApplicationController implements PropertyChangeListener{
 						CmdDonutAdd.execute();
 						AppModel.pushToUndoStack(CmdDonutAdd);
 						actLog.addElement("Added->" + donut.toString());
+						AppFrame.getBtnRedo().setVisible(false);
+						AppModel.getRedoStack().removeAllElements();
 					}
 				} else {
 					JOptionPane.showMessageDialog(AppFrame,
@@ -237,6 +257,7 @@ public class ApplicationController implements PropertyChangeListener{
 	} 
 	private void drawHexagon(MouseEvent e) { 
 		DlgCircle dlgHex = new DlgCircle();
+		dlgHex.setTitle("Add Hexagon");
 		dlgHex.setVisible(true);
 
 		if(dlgHex.isConfirm()) {
@@ -248,6 +269,8 @@ public class ApplicationController implements PropertyChangeListener{
 					CmdHexagonAdd.execute();
 					AppModel.pushToUndoStack(CmdHexagonAdd);
 					actLog.addElement("Added->" + adapter.toString());
+					AppFrame.getBtnRedo().setVisible(false);
+					AppModel.getRedoStack().removeAllElements();
 				} else {
 					JOptionPane.showMessageDialog(AppFrame,
 							"Illegal input type!",
@@ -266,20 +289,31 @@ public class ApplicationController implements PropertyChangeListener{
 
 	public void undo() {
 		if(AppModel.getUndoStack().size()>0) {
-			AppModel.pushToRedoStack(AppModel.getUndoStack().peek());
+			Command command = AppModel.getUndoStack().peek();
+			AppModel.pushToRedoStack(command);
 			actLog.addElement("Undo->" + AppModel.getUndoStack().peek().toString());
 			AppModel.removeFromUndoStack();
 			AppFrame.getAppView().repaint(); 
 		}
+		System.out.println(AppModel.getSelectedShapes());
 	}
 
 	public void redo() {
 		if(AppModel.getRedoStack().size()>0) {
+//			if(AppModel.getRedoStack().peek() instanceof CmdUnselect) {
+//				AppModel.pushToUndoStack(AppModel.getRedoStack().peek());
+//				actLog.addElement("Redo->" + AppModel.getRedoStack().peek().toString());
+//				AppModel.removeFromRedoStack();
+//				AppFrame.getAppView().repaint();
+//				System.out.println(AppModel.getSelectedShapes());
+//				return;
+//			}
 			AppModel.pushToUndoStack(AppModel.getRedoStack().peek());
 			actLog.addElement("Redo->" + AppModel.getRedoStack().peek().toString());
 			AppModel.removeFromRedoStack();
 			AppFrame.getAppView().repaint();
 		}
+		System.out.println(AppModel.getSelectedShapes());
 	}
 
 	private void selectShape(MouseEvent e) {
@@ -287,21 +321,78 @@ public class ApplicationController implements PropertyChangeListener{
 		{
 			if(AppModel.getShapes().get(i).contains(e.getX(), e.getY()))
 			{
+				if(AppModel.getShapes().get(i).isSelected())
+				{
+					return;
+				}
 				Shape shape = AppModel.getShapes().get(i);
 				CmdSelect CmdSelect = new CmdSelect(AppModel, shape);
 				CmdSelect.execute();
 				actLog.addElement("Selected->" + shape.toString());
 				AppModel.getUndoStack().push(CmdSelect);
+				selSize++;
 			}
 		}
+		
+//		for(int x = 0; x<AppModel.getShapes().size(); x++) {
+//			for(int y = x + 1; y<AppModel.getShapes().size(); y++ ) {
+//				if(AppModel.getShapes().get(x).contains(e.getX(), e.getY()) && AppModel.getShapes().get(y).contains(e.getX(), e.getY())) {
+//					AppModel.removeSelectedShape(AppModel.getShapes().get(x));
+//					Shape shape = AppModel.getShapes().get(y);
+//					CmdSelect CmdSelect = new CmdSelect(AppModel, shape);
+//					CmdSelect.execute();
+//					actLog.addElement("Selected->" + shape.toString());
+//					AppModel.getUndoStack().push(CmdSelect);
+//				}
+//			}
+//		}
+//		if(AppModel.getShapes().size()>1)
+//		{
+//			for(int i = 0; i<AppModel.getShapes().size(); i++)
+//			{
+//				if(AppModel.getShapes().get(i).contains(e.getX(), e.getY()) && AppModel.getShapes().get(AppModel.getShapes().size()-1).contains(e.getX(), e.getY()))
+//				{
+//					AppModel.getShapes().get(i).setSelected(false);
+//					AppModel.getShapes().get(AppModel.getShapes().size()-1).setSelected(true);
+//				}
+//			}
+//		}
 	} 
+	
+	public void selectShapeFromLog(Shape shape) {
+		int index = AppModel.getShapes().indexOf(shape);
+		Shape selectedShape = AppModel.getShapes().get(index);
+		CmdSelect CmdSelect = new CmdSelect(AppModel, selectedShape);
+		CmdSelect.execute();
+		AppModel.getUndoStack().push(CmdSelect);
+		AppFrame.getAppView().repaint();
+	}
 
 	public void unselectAll() {
-		Iterator<Shape> it = AppModel.getSelectedShapes().iterator();
-		while(it.hasNext()) {
-			it.next().setSelected(false);
-			it.remove();
+
+//		for(int i = 0; i< AppModel.getSelectedShapes().size(); i++) {
+//				Shape shape = AppModel.getSelectedShapes().get(i);
+//				CmdUnselect unselect = new CmdUnselect(AppModel, shape,0);
+//				unselect.execute();
+//				AppModel.getUndoStack().push(unselect);
+//				actLog.addElement("Unselected->" + shape.toString());
+//		}
+//		AppModel.getSelectedShapes().clear();
+//		Iterator<Shape> it = AppModel.getSelectedShapes().iterator();
+//		while(it.hasNext()) {
+//		Shape shape = it.next();
+//		actLog.addElement("Unselected->" + shape.toString());
+//			it.next().setSelected(false);
+//			it.remove();
+//		}
+//		
+		for(int i = 0; i<AppModel.getShapes().size(); i++) {
+			if(AppModel.getShapes().get(i).isSelected()) {
+				AppModel.getShapes().get(i).setSelected(false);
+			}
 		}
+		AppModel.getSelectedShapes().clear();
+		System.out.println(AppModel.getSelectedShapes());
 		AppFrame.getTglBtnModify().setVisible(false);
 		AppFrame.getTglBtnDelete().setVisible(false);
 	}
@@ -322,6 +413,7 @@ public class ApplicationController implements PropertyChangeListener{
 						CmdPointUpdate CmdPointUpdate = new CmdPointUpdate(oldState , newState);
 						CmdPointUpdate.execute();
 						AppModel.pushToUndoStack(CmdPointUpdate);
+					//	AppModel.getRedoStack().removeAllElements();
 						AppFrame.repaint();
 					} else {
 						JOptionPane.showMessageDialog(AppFrame,
@@ -348,6 +440,7 @@ public class ApplicationController implements PropertyChangeListener{
 						actLog.addElement("Updated->" + oldLine.toString() + "->" + newLine.toString());
 						CmdLineUpdate.execute();
 						AppModel.pushToUndoStack(CmdLineUpdate);
+				//		AppModel.getRedoStack().removeAllElements();
 						AppFrame.repaint();
 					} else {
 						JOptionPane.showMessageDialog(AppFrame,
@@ -373,6 +466,7 @@ public class ApplicationController implements PropertyChangeListener{
 						actLog.addElement("Updated->" + oldRectangle.toString() + "->" + newRectangle.toString());
 						CmdRectangleUpdate.execute();
 						AppModel.pushToUndoStack(CmdRectangleUpdate);
+						AppModel.getRedoStack().removeAllElements();
 						AppFrame.repaint();
 					} else {
 						JOptionPane.showMessageDialog(AppFrame,
@@ -399,6 +493,7 @@ public class ApplicationController implements PropertyChangeListener{
 						actLog.addElement("Updated->" + oldDonut.toString() + "->" + newDonut.toString());
 						CmdDonutUpdate.execute();
 						AppModel.pushToUndoStack(CmdDonutUpdate);
+						AppModel.getRedoStack().removeAllElements();
 						AppFrame.repaint();
 					} else {
 						JOptionPane.showMessageDialog(AppFrame,
@@ -428,6 +523,7 @@ public class ApplicationController implements PropertyChangeListener{
 							actLog.addElement("Updated->" + oldCircle.toString() + "->" + newCircle.toString());
 							CmdCircleUpdate.execute();
 							AppModel.pushToUndoStack(CmdCircleUpdate);
+							AppModel.getRedoStack().removeAllElements();
 							AppFrame.repaint();
 						} else {
 							JOptionPane.showMessageDialog(AppFrame,
@@ -457,6 +553,7 @@ public class ApplicationController implements PropertyChangeListener{
 							actLog.addElement("Updated->" + oldHexagon.toString() + "->" + adapter.toString());
 							CmdHexagonUpdate.execute();
 							AppModel.pushToUndoStack(CmdHexagonUpdate);
+							AppModel.getRedoStack().removeAllElements();
 							AppFrame.repaint();
 						} else {
 							JOptionPane.showMessageDialog(AppFrame,
@@ -524,20 +621,46 @@ public class ApplicationController implements PropertyChangeListener{
 		AppFrame.repaint();
 	}
 
-	public void delete()
-	{
-
-		DlgSigurni dlgChoice = new DlgSigurni();
-		dlgChoice.setVisible(true);
-		if(dlgChoice.potvrda) {
+	public void deleteFromLog() {
+		while(AppModel.getSelectedShapes().size()>0) {
 			for(int i = 0; i<AppModel.getSelectedShapes().size(); i++) {
 				Shape shape = AppModel.getSelectedShapes().get(i);
 				CmdDeleteShape CDS = new CmdDeleteShape(AppModel, shape);
 				CDS.execute();
 				actLog.addElement("Deleted->" + shape.toString());
 				AppModel.getUndoStack().push(CDS);
+		}
+			AppFrame.getAppView().repaint();
+	}
+		
+	}
+	
+	
+	public void delete()
+	{
 
+		DlgSigurni dlgChoice = new DlgSigurni();
+		dlgChoice.setVisible(true);
+		if(dlgChoice.potvrda) {
+			while(AppModel.getSelectedShapes().size()>0) {
+				for(int i = 0; i<AppModel.getSelectedShapes().size(); i++) {
+					Shape shape = AppModel.getSelectedShapes().get(i);
+					CmdDeleteShape CDS = new CmdDeleteShape(AppModel, shape);
+					CDS.execute();
+					actLog.addElement("Deleted->" + shape.toString());
+					AppModel.getUndoStack().push(CDS);
 			}
+//			if(dlgChoice.potvrda) {
+//				for(int i = 0; i<AppModel.getSelectedShapes().size(); i++) {
+//					Shape shape = AppModel.getSelectedShapes().get(i);
+//					CmdDeleteShape CDS = new CmdDeleteShape(AppModel, shape);
+//					CDS.execute();
+//					actLog.addElement("Deleted->" + shape.toString());
+//					AppModel.getUndoStack().push(CDS);
+
+				}
+		}
+	
 			//			for(int i = 0; i<AppModel.getSelectedShapes().size(); i++)
 			//			{
 			//				if(AppModel.getSelectedShapes().get(0) instanceof Point) {
@@ -580,8 +703,7 @@ public class ApplicationController implements PropertyChangeListener{
 			//			}
 			AppFrame.repaint();
 		}
-	}
-
+	
 	private boolean checkType(String s) {
 		try {
 			Integer.parseInt(s);
@@ -599,6 +721,8 @@ public class ApplicationController implements PropertyChangeListener{
 		}
 		return false;
 	}
+	
+	
 	public void serialize() {
 		JFileChooser chooser = new JFileChooser();
 		chooser.setFileSelectionMode(JFileChooser.SAVE_DIALOG);
@@ -654,6 +778,8 @@ public class ApplicationController implements PropertyChangeListener{
 		chooser.setVisible(false);
 	}
 
+	//Da li ovde treba da se brise redo stack
+	
 	public void executeCommand(Command command) {
 		command.execute();
 		AppModel.pushToUndoStack(command);

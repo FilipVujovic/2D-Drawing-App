@@ -25,7 +25,7 @@ public class CmdHexagonAdd implements Command {
 	
 	@Override
 	public String toString() {
-		return "Added->"+hexagon.getHexagon().toString();
+		return "Added->"+hexagon.toString();
 	}
 
 }

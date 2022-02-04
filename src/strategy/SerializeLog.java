@@ -28,6 +28,7 @@ import commands.CmdRectangleUpdate;
 import commands.CmdSelect;
 import commands.CmdToBack;
 import commands.CmdToFront;
+import commands.CmdUnselect;
 import delete.CmdCircleDelete;
 import delete.CmdLineDelete;
 import delete.CmdPointDelete;
@@ -165,11 +166,11 @@ public class SerializeLog implements OptionChooser{
 					}
 					break;
 				case "Deleted":
-					AppController.delete();  
+					AppController.deleteFromLog();  
 					break;
 				case "Selected":
 					Shape selectedShape = parseShape(commands[1].split(":")[0], commands[1].split(":")[1]);
-					AppController.executeCommand(new CmdSelect(AppModel,selectedShape));
+					AppController.selectShapeFromLog(selectedShape);
 					AppFrame.getDlmList().addElement("Selected->" + selectedShape.toString());
 					break;
 				case "Moved to front":
@@ -191,6 +192,11 @@ public class SerializeLog implements OptionChooser{
 					Shape shapeBroughtToBack = parseShape(commands[1].split(":")[0], commands[1].split(":")[1]);
 					AppController.executeCommand(new CmdBringToBack(AppModel,AppModel.getShapes().indexOf(shapeBroughtToBack), shapeBroughtToBack));
 					AppFrame.getDlmList().addElement("Brought to back->" + shapeBroughtToBack.toString());
+					break;
+				case "Unselected":
+					Shape unselectedShape = parseShape(commands[1].split(":")[0], commands[1].split(":")[1]);
+					AppController.executeCommand(new CmdUnselect(AppModel, unselectedShape,2));
+					AppFrame.getDlmList().addElement("Unselected->" + unselectedShape.toString());
 					break;
 			}
 			String line = reader.readLine();

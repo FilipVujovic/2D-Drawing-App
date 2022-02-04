@@ -72,6 +72,7 @@ public class DlgRectangleUpdate extends JDialog {
 	private final JButton btnCancel = new JButton("Cancel");
 	public DlgRectangleUpdate() {
 		setModal(true);
+		setTitle("Update Rectangle");
 		setBounds(100, 100, 450, 250);
 		JPanel panel = new JPanel();
 		getContentPane().add(panel, BorderLayout.CENTER);

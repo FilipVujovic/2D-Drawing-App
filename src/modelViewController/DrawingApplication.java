@@ -12,6 +12,7 @@ public class DrawingApplication {
 		AppFrame.setAppController(AppController);
 		AppModel.addPropertyChangeListener(AppController);
 		AppFrame.setSize(800,600);
+		AppFrame.setTitle("Drawing Application");
 		AppFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		AppFrame.setVisible(true);
 

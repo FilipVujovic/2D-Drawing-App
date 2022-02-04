@@ -86,6 +86,7 @@ public class DlgCircleUpdate extends JDialog{
 	public DlgCircleUpdate() {
 		setResizable(true);
 		setModal(true);
+		setTitle("Update Circle");
 		setBounds(100, 100, 350, 200);
 		JPanel panel = new JPanel();
 		getContentPane().add(panel, BorderLayout.CENTER);

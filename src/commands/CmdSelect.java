@@ -7,27 +7,27 @@ import shapes.Shape;
 
 public class CmdSelect implements Command{
 	private ApplicationModel AppModel;
-	private Shape shape;
+	private Shape selectedShape;
 	public CmdSelect(ApplicationModel appModel, Shape shape) {
 		this.AppModel = appModel;
-		this.shape = shape;
+		this.selectedShape = shape;
 	}
 
 	@Override 
 	public void execute() {
-		shape.setSelected(true);
-		AppModel.addSelectedShape(shape);
+		selectedShape.setSelected(true);
+		AppModel.addSelectedShape(selectedShape);
 	}
 
 	@Override 
 	public void unexecute() { 
-		shape.setSelected(false);
-		AppModel.getSelectedShapes().remove(shape);
+		selectedShape.setSelected(false);
+		AppModel.getSelectedShapes().remove(selectedShape);
 	}
 	
 	@Override
 	public String toString() {
-		return "Selected->" + shape.toString();
+		return "Selected->" + selectedShape.toString();
 	}
 
 }

@@ -52,7 +52,6 @@ public class ApplicationModel {
 		this.undoStack = undoStack;
 	}
 
-
 	public List<Shape> getSelectedShapes() {
 		return selectedShapes;
 	}
@@ -108,7 +107,14 @@ public class ApplicationModel {
 	public void addSelectedShape(Shape toBeAdded) {
 			int selectedShapesSizeBefore = selectedShapes.size();
 			selectedShapes.add(toBeAdded);
+			System.out.println(shapes.get(0).isSelected());
 			propertyChangeSupport.firePropertyChange("Selected Shapes", selectedShapesSizeBefore, selectedShapes.size());
+	}
+	
+	public void removeSelectedShape(Shape toBeRemoved) {
+		int index = shapes.indexOf(toBeRemoved);
+		shapes.get(index).setSelected(false);
+		selectedShapes.remove(toBeRemoved);
 	}
 	
 	public void pushToUndoStack(Command toBePushed) {

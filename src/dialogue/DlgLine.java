@@ -100,6 +100,7 @@ public class DlgLine extends JDialog{
 	public DlgLine() {
 		setBounds(100, 100, 450, 200);
 		setModal(true);
+		setTitle("Update Line");
 		GridBagLayout gridBagLayout = new GridBagLayout();
 		gridBagLayout.columnWidths = new int[]{0, 114, 0, 0, 100, 63, 0, 0};
 		gridBagLayout.rowHeights = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0};

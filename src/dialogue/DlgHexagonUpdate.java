@@ -89,6 +89,7 @@ public class DlgHexagonUpdate extends JDialog {
 
 	public DlgHexagonUpdate() {
 		setModal(true);
+		setTitle("Update Hexagon");
 		setBounds(100, 100, 495, 200);
 		JPanel panel = new JPanel();
 		getContentPane().add(panel, BorderLayout.CENTER);

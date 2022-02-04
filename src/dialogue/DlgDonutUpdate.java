@@ -108,6 +108,7 @@ public class DlgDonutUpdate extends JDialog{
 	public DlgDonutUpdate() {
 		setResizable(false);
 		setModal(true);
+		setTitle("Update Donut");
 		setBounds(100, 100, 390, 277);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
